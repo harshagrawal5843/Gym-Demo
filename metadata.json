@@ -1,0 +1,6 @@
+{
+  "name": "Iron Forge Fitness",
+  "description": "Premium luxury fitness gym offering professional coaching, world-class equipment, and a high-energy result-driven community.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
