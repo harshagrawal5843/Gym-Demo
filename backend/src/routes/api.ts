@@ -7,7 +7,7 @@ import fs from 'fs';
 
 const router = Router();
 
-// Create transporter lazily and force IPv4 to prevent IPv6 ENETUNREACH errors on Render
+// Create transporter lazily and force IPv4 via custom dns.lookup override to bypass Render's broken IPv6 stack
 const getMailer = () => nodemailer.createTransport({
   host: 'smtp.gmail.com',
   port: 465,
@@ -17,8 +17,9 @@ const getMailer = () => nodemailer.createTransport({
     pass: process.env.GMAIL_APP_PASSWORD,
   },
   connectionTimeout: 10000,
-  connectionOptions: {
-    family: 4
+  // Custom DNS lookup forcing IPv4 (family: 4)
+  lookup: (hostname: string, options: any, callback: any) => {
+    require('dns').lookup(hostname, { family: 4 }, callback);
   }
 } as any);
 
