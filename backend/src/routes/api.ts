@@ -415,7 +415,7 @@ router.post('/contacts', async (req: Request, res: Response) => {
     const topicLabel = topicLabels[subject] || subject || 'General Inquiry';
 
     try {
-      await getMailer().sendMail({
+      const info = await getMailer().sendMail({
         from: `"Fitex Gym Contact Form" <${process.env.GMAIL_USER}>`,
         to: process.env.OWNER_EMAIL,
         replyTo: email,
@@ -442,6 +442,7 @@ router.post('/contacts', async (req: Request, res: Response) => {
           </div>
         `,
       });
+      console.log('Email sent successfully:', info.messageId);
     } catch (mailError) {
       // Email failure should not block the API response
       console.error('Email send error:', mailError);
