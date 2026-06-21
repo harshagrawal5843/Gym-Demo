@@ -64,9 +64,18 @@ const ContactInfoSchema = new Schema({
   mapEmbedUrl: { type: String }
 });
 
+// Admin Schema
+const AdminSchema = new Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  role: { type: String, enum: ['owner', 'developer'], required: true }
+});
+
 export const Plan = model('Plan', PlanSchema);
 export const Trainer = model('Trainer', TrainerSchema);
 export const TrialBooking = model('TrialBooking', TrialBookingSchema);
 export const ContactSubmission = model('ContactSubmission', ContactSubmissionSchema);
 export const GalleryItem = model('GalleryItem', GalleryItemSchema);
 export const ContactInfo = model('ContactInfo', ContactInfoSchema);
+export const Admin = model('Admin', AdminSchema);
+

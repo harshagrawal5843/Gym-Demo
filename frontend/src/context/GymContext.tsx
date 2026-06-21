@@ -28,7 +28,7 @@ interface GymContextType {
   galleryItems: GalleryItem[];
   contactInfo: ContactInfo;
   currentUser: UserSession | null;
-  login: (email: string, pass: string) => boolean;
+  login: (email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   addTrialBooking: (booking: Omit<TrialBooking, 'id' | 'createdAt'>) => Promise<void>;
   addContactSubmission: (submission: Omit<ContactSubmission, 'id' | 'createdAt'>) => Promise<void>;
@@ -45,10 +45,10 @@ interface GymContextType {
 const GymContext = createContext<GymContextType | undefined>(undefined);
 
 const defaultContact: ContactInfo = {
-  address: "Link Road, Birgunj, Nepal - 44300",
-  phone: "+977 51-523456",
-  email: "birgunj@fitex.com",
-  mapEmbedUrl: "https://maps.google.com/maps?q=Birgunj%20Nepal&t=&z=14&ie=UTF8&iwloc=&output=embed"
+  address: "FITEX FITNESS GYM Birgunj 44300, Nepal",
+  phone: "+977 981-1250236",
+  email: "harshagrawal5843@gmail.com",
+  mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3554.6183829078836!2d84.87037317430811!3d27.010619076588878!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39935500780209ed%3A0xafc5d195aa2515ee!2sFITEX%20FITNESS%20GYM!5e0!3m2!1sen!2sus!4v1782055781084!5m2!1sen!2sus"
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
@@ -62,7 +62,6 @@ export function GymProvider({ children }: { children: React.ReactNode }) {
   const [contactInfo, setContactInfo] = useState<ContactInfo>(defaultContact);
   const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
 
-  // Helper fetcher with fallback logic
   const fetchData = async () => {
     try {
       // 1. Fetch Plans
@@ -71,11 +70,13 @@ export function GymProvider({ children }: { children: React.ReactNode }) {
         const plansData = await plansRes.json();
         if (plansData && plansData.length > 0) {
           setMembershipPlans(plansData);
+          localStorage.setItem('fitex_plans', JSON.stringify(plansData));
         } else {
           // If empty in DB, try to seed
           await fetch(`${API_BASE}/seed`, { method: 'POST' });
           const rePlans = await fetch(`${API_BASE}/plans`).then(r => r.json());
           setMembershipPlans(rePlans);
+          localStorage.setItem('fitex_plans', JSON.stringify(rePlans));
         }
       } else {
         throw new Error('Offline');
@@ -84,31 +85,41 @@ export function GymProvider({ children }: { children: React.ReactNode }) {
       // 2. Fetch Coaches
       const coachesRes = await fetch(`${API_BASE}/coaches`);
       if (coachesRes.ok) {
-        setCoaches(await coachesRes.json());
+        const coachesData = await coachesRes.json();
+        setCoaches(coachesData);
+        localStorage.setItem('fitex_coaches', JSON.stringify(coachesData));
       }
 
       // 3. Fetch Gallery
       const galleryRes = await fetch(`${API_BASE}/gallery`);
       if (galleryRes.ok) {
-        setGalleryItems(await galleryRes.json());
+        const galleryData = await galleryRes.json();
+        setGalleryItems(galleryData);
+        localStorage.setItem('fitex_gallery', JSON.stringify(galleryData));
       }
 
       // 4. Fetch Contact Info
       const infoRes = await fetch(`${API_BASE}/contact-info`);
       if (infoRes.ok) {
-        setContactInfo(await infoRes.json());
+        const infoData = await infoRes.json();
+        setContactInfo(infoData);
+        localStorage.setItem('fitex_contact_info', JSON.stringify(infoData));
       }
 
       // 5. Fetch Bookings
       const bookingsRes = await fetch(`${API_BASE}/bookings`);
       if (bookingsRes.ok) {
-        setTrialBookings(await bookingsRes.json());
+        const bookingsData = await bookingsRes.json();
+        setTrialBookings(bookingsData);
+        localStorage.setItem('fitex_bookings', JSON.stringify(bookingsData));
       }
 
       // 6. Fetch Submissions
       const contactRes = await fetch(`${API_BASE}/contacts`);
       if (contactRes.ok) {
-        setContactSubmissions(await contactRes.json());
+        const contactData = await contactRes.json();
+        setContactSubmissions(contactData);
+        localStorage.setItem('fitex_contacts', JSON.stringify(contactData));
       }
 
     } catch (err) {
@@ -154,14 +165,31 @@ export function GymProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    // Always call fetchData first, which pulls new data from the backend and updates localStorage
     fetchData();
     const session = localStorage.getItem('fitex_session');
     if (session) setCurrentUser(JSON.parse(session));
   }, []);
 
-  const login = (email: string, pass: string): boolean => {
-    let session: UserSession | null = null;
+  const login = async (email: string, pass: string): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      if (res.ok) {
+        const session = await res.json();
+        setCurrentUser(session);
+        localStorage.setItem('fitex_session', JSON.stringify(session));
+        return true;
+      }
+    } catch (err) {
+      console.warn("Backend auth failed or unreachable, trying local fallback:", err);
+    }
 
+    // Local fallback for offline mode
+    let session: UserSession | null = null;
     if (email === 'owner@fitex.com' && pass === 'owner123') {
       session = { email, role: 'owner' };
     } else if (email === 'dev@fitex.com' && pass === 'dev123') {

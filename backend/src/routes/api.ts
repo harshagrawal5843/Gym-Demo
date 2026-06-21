@@ -1,5 +1,4 @@
-import { Router, Request, Response } from 'express';
-import { Plan, Trainer, TrialBooking, ContactSubmission, GalleryItem, ContactInfo } from '../models/Schemas';
+import { Plan, Trainer, TrialBooking, ContactSubmission, GalleryItem, ContactInfo, Admin } from '../models/Schemas';
 import nodemailer from 'nodemailer';
 import multer from 'multer';
 import path from 'path';
@@ -194,10 +193,10 @@ const initialGallery = [
 ];
 
 const defaultContact = {
-  address: "Link Road, Birgunj, Nepal - 44300",
-  phone: "+977 51-523456",
-  email: "birgunj@fitex.com",
-  mapEmbedUrl: "https://maps.google.com/maps?q=Birgunj%20Nepal&t=&z=14&ie=UTF8&iwloc=&output=embed"
+  address: "FITEX FITNESS GYM Birgunj 44300, Nepal",
+  phone: "+977 981-1250236",
+  email: "harshagrawal5843@gmail.com",
+  mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3554.6183829078836!2d84.87037317430811!3d27.010619076588878!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39935500780209ed%3A0xafc5d195aa2515ee!2sFITEX%20FITNESS%20GYM!5e0!3m2!1sen!2sus!4v1782055781084!5m2!1sen!2sus"
 };
 
 // Seed route helper
@@ -213,6 +212,12 @@ const runSeed = async () => {
 
   await ContactInfo.deleteMany({});
   await ContactInfo.create(defaultContact);
+
+  await Admin.deleteMany({});
+  await Admin.insertMany([
+    { email: 'owner@fitex.com', password: 'owner123', role: 'owner' },
+    { email: 'dev@fitex.com', password: 'dev123', role: 'developer' }
+  ]);
 
   await TrialBooking.deleteMany({});
   await ContactSubmission.deleteMany({});
@@ -237,6 +242,22 @@ router.post('/reset', async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// --- AUTHENTICATION ---
+router.post('/auth/login', async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    const admin = await Admin.findOne({ email, password });
+    if (admin) {
+      res.json({ email: admin.email, role: admin.role });
+    } else {
+      res.status(401).json({ error: 'Invalid credentials. Check your email and password.' });
+    }
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 // --- PLANS ---
 router.get('/plans', async (req: Request, res: Response) => {
