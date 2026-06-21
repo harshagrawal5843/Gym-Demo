@@ -1,8 +1,30 @@
+# Dependencies
 node_modules/
-build/
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.production
+
+# Build outputs
+.next/
 dist/
-coverage/
+build/
+
+# Uploads folder (keep the folder, ignore actual files)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Temp scripts created during development
+frontend/remove_italic.ps1
+frontend/swap_colors.ps1
+frontend/fix_colors.ps1
+frontend/fix_booktrial.ps1
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
-.env*
-!.env.example
+npm-debug.log*
