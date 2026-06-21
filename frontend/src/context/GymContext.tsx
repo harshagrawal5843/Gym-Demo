@@ -467,14 +467,14 @@ export function useGym() {
   const context = useContext(GymContext);
   if (!context) {
     return {
-      membershipPlans: [],
-      coaches: [],
-      trialBookings: [],
-      contactSubmissions: [],
-      galleryItems: [],
+      membershipPlans: [] as PriceTier[],
+      coaches: [] as Trainer[],
+      trialBookings: [] as TrialBooking[],
+      contactSubmissions: [] as ContactSubmission[],
+      galleryItems: [] as GalleryItem[],
       contactInfo: defaultContact,
       currentUser: null,
-      login: () => false,
+      login: async () => false,
       logout: () => {},
       addTrialBooking: async () => {},
       addContactSubmission: async () => {},
