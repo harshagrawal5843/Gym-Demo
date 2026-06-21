@@ -1,3 +1,4 @@
+import { Router, Request, Response } from 'express';
 import { Plan, Trainer, TrialBooking, ContactSubmission, GalleryItem, ContactInfo, Admin } from '../models/Schemas';
 import nodemailer from 'nodemailer';
 import multer from 'multer';
@@ -257,7 +258,6 @@ router.post('/auth/login', async (req: Request, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 
 // --- PLANS ---
 router.get('/plans', async (req: Request, res: Response) => {
