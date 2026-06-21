@@ -406,7 +406,7 @@ router.post('/contacts', async (req: Request, res: Response) => {
       const data = await resend.emails.send({
         from: 'Fitex Gym Contact <onboarding@resend.dev>',
         to: process.env.OWNER_EMAIL || 'harshagrawal6524@gmail.com',
-        replyTo: email,
+        reply_to: email,
         subject: `[Fitex Gym] New Message: ${topicLabel}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
