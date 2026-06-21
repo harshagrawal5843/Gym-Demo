@@ -19,8 +19,8 @@ const getMailer = () => nodemailer.createTransport({
   connectionTimeout: 10000,
   connectionOptions: {
     family: 4
-  } as any
-});
+  }
+} as any);
 
 // --- FILE UPLOAD (Multer) ---
 const uploadsDir = path.join(__dirname, '../../../uploads');
