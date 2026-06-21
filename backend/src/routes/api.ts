@@ -1,27 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { Plan, Trainer, TrialBooking, ContactSubmission, GalleryItem, ContactInfo, Admin } from '../models/Schemas';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 
 const router = Router();
 
-// Create transporter lazily and force IPv4 via custom dns.lookup override to bypass Render's broken IPv6 stack
-const getMailer = () => nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-  connectionTimeout: 10000,
-  // Custom DNS lookup forcing IPv4 (family: 4)
-  lookup: (hostname: string, options: any, callback: any) => {
-    require('dns').lookup(hostname, { family: 4 }, callback);
-  }
-} as any);
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 
 // --- FILE UPLOAD (Multer) ---
 const uploadsDir = path.join(__dirname, '../../../uploads');
@@ -415,9 +403,9 @@ router.post('/contacts', async (req: Request, res: Response) => {
     const topicLabel = topicLabels[subject] || subject || 'General Inquiry';
 
     try {
-      const info = await getMailer().sendMail({
-        from: `"Fitex Gym Contact Form" <${process.env.GMAIL_USER}>`,
-        to: process.env.OWNER_EMAIL,
+      const data = await resend.emails.send({
+        from: 'Fitex Gym Contact <onboarding@resend.dev>',
+        to: process.env.OWNER_EMAIL || 'harshagrawal6524@gmail.com',
         replyTo: email,
         subject: `[Fitex Gym] New Message: ${topicLabel}`,
         html: `
@@ -442,10 +430,10 @@ router.post('/contacts', async (req: Request, res: Response) => {
           </div>
         `,
       });
-      console.log('Email sent successfully:', info.messageId);
+      console.log('Email sent successfully via Resend:', data.data?.id);
     } catch (mailError) {
       // Email failure should not block the API response
-      console.error('Email send error:', mailError);
+      console.error('Resend email send error:', mailError);
     }
 
     res.json(submission);
